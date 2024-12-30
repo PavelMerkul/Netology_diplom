@@ -11,10 +11,8 @@ import static com.codeborne.selenide.Selenide.open;
 
 public class CreditCardTest {
 
-
     String approvedCardNumber = DataHelper.getCardApproved().getCardNumber();
     String declinedCardNumber = DataHelper.getCardDeclined().getCardNumber();
-    String randomCardNumber = DataHelper.getRandomCardNumber();
     String validMonth = DataHelper.getRandomMonth(1);
     String validYear = DataHelper.getRandomYear(1);
     String validOwnerName = DataHelper.getRandomName();
@@ -23,7 +21,6 @@ public class CreditCardTest {
     @BeforeEach
     public void setUp() {
         open("http://localhost:8080");
-
     }
 
     @AfterEach
@@ -50,7 +47,6 @@ public class CreditCardTest {
         creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, validCode);
         creditCardPage.bankApprovedOperation();
         Assertions.assertEquals("APPROVED", SQLHelper.getCreditPayment());
-
     }
 
     @Test
@@ -64,128 +60,62 @@ public class CreditCardTest {
         Assertions.assertEquals("Declined", SQLHelper.getCreditPayment());
     }
 
-
     @Test
-    public void shouldIncorrectCreditPaymenNumber() {
+    public void shouldHandleInvalidCardDetails() {
         PaymentTypesPage page = new PaymentTypesPage();
         page.paymentTypesPage();
         var creditCardPage = page.creditPayment();
+
+        // Test invalid card number
         var invalidCardNumber = DataHelper.GetAShortNumber();
         creditCardPage.cleanFields();
         creditCardPage.fillCardPaymentForm(invalidCardNumber, validMonth, validYear, validOwnerName, validCode);
         creditCardPage.errorFormat();
-    }
 
-    @Test
-    public void shouldMustBlankFieldCardNumberCreditPayment() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
+        // Test empty card number
         var emptyCardNumber = DataHelper.getEmptyField();
         creditCardPage.cleanFields();
         creditCardPage.fillCardPaymentForm(emptyCardNumber, validMonth, validYear, validOwnerName, validCode);
         creditCardPage.errorFormat();
 
-    }
-
-    @Test
-    public void creditPaymentByCardWithExpiredMonthlyValidity() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
-        var currentYear = DataHelper.getRandomYear(0);
+        // Test expired card month
         var monthExpired = DataHelper.getRandomMonth(-2);
         creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, monthExpired, currentYear, validOwnerName, validCode);
+        creditCardPage.fillCardPaymentForm(approvedCardNumber, monthExpired, validYear, validOwnerName, validCode);
         creditCardPage.errorCardTermValidity();
 
-    }
-
-    @Test
-    public void payWithACardWithTheWrongMonth() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
-        var invalidMonth = DataHelper.getInvalidMonth();
+        // Test expired card year
+        var expiredYear = DataHelper.getRandomYear(-5);
         creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, invalidMonth, validYear, validOwnerName, validCode);
-        creditCardPage.errorCardTermValidity();
-
-    }
-
-    @Test
-    public void payWithACreditCardWithAnEmptyMonth() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
-        var emptyMonth = DataHelper.getEmptyField();
-        creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, emptyMonth, validYear, validOwnerName, validCode);
-        creditCardPage.errorFormat();
-    }
-
-    @Test
-    public void creditPaymentByCardWithExpiredAnnualValidity() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
-        var AnnualValidity = DataHelper.getRandomYear(-5);
-        creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, AnnualValidity, validOwnerName, validCode);
+        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, expiredYear, validOwnerName, validCode);
         creditCardPage.termValidityExpired();
-
     }
 
     @Test
-    public void creditCardPaymentWithEmptyYear() {
+    public void shouldHandleInvalidOwnerName() {
         PaymentTypesPage page = new PaymentTypesPage();
         page.paymentTypesPage();
         var creditCardPage = page.creditPayment();
-        var emptyYear = DataHelper.getEmptyField();
-        creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, emptyYear, validOwnerName, validCode);
-        creditCardPage.errorFormat();
-    }
 
-    @Test
-    public void rusLanguageNamePaymentByCreditCard() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
+        // Test Russian name
         var rusLanguageName = DataHelper.getRandomNameRus();
         creditCardPage.cleanFields();
         creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, rusLanguageName, validCode);
         creditCardPage.errorFormat();
-    }
 
-    @Test
-    public void digitsNameCardCreditPayment() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
+        // Test digits in name
         var digitsName = DataHelper.getNumberName();
         creditCardPage.cleanFields();
         creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, digitsName, validCode);
         creditCardPage.errorFormat();
-    }
 
-
-    @Test
-    public void specSymbolsNameCreditPayment() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
+        // Test special symbols in name
         var specSymbolsName = DataHelper.getSpecialCharactersName();
         creditCardPage.cleanFields();
         creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, specSymbolsName, validCode);
         creditCardPage.errorFormat();
-    }
 
-    @Test
-    public void emptyNameCreditPayment() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
+        // Test empty name
         var emptyName = DataHelper.getEmptyField();
         creditCardPage.cleanFields();
         creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, emptyName, validCode);
@@ -193,67 +123,44 @@ public class CreditCardTest {
     }
 
     @Test
-    public void twoDigitCreditPaymentCode() {
+    public void shouldHandleInvalidCVC() {
         PaymentTypesPage page = new PaymentTypesPage();
         page.paymentTypesPage();
         var creditCardPage = page.creditPayment();
-        var twoDigitCard = DataHelper.getNumberCVC(2);
+
+        // Test two-digit CVC
+        var twoDigitCVC = DataHelper.getNumberCVC(2);
         creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, twoDigitCard);
+        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, twoDigitCVC);
+        creditCardPage.errorFormat();
+
+        // Test one-digit CVC
+        var oneDigitCVC = DataHelper.getNumberCVC(1);
+        creditCardPage.cleanFields();
+        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, oneDigitCVC);
+        creditCardPage.errorFormat();
+
+        // Test empty CVC
+        var emptyCVC = DataHelper.getEmptyField();
+        creditCardPage.cleanFields();
+        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, emptyCVC);
+        creditCardPage.errorFormat();
+
+        // Test special symbols in CVC
+        var specSymbolsCVC = DataHelper.getSpecialCharactersName();
+        creditCardPage.cleanFields();
+        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, specSymbolsCVC);
         creditCardPage.errorFormat();
     }
 
     @Test
-    public void oneDigitInTheCreditPaymentCode() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
-        var oneDigitInTheCard = DataHelper.getNumberCVC(1);
-        creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, oneDigitInTheCard);
-        creditCardPage.errorFormat();
-    }
-
-    @Test
-    public void emptyFieldInTheCreditCardCode() {
+    public void shouldHandleAllFieldsEmpty() {
         PaymentTypesPage page = new PaymentTypesPage();
         page.paymentTypesPage();
         var creditCardPage = page.creditPayment();
         var emptyField = DataHelper.getEmptyField();
         creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, emptyField);
-        creditCardPage.errorFormat();
-
-    }
-
-    @Test
-    public void specSymbolsCodeCreditCardPayment() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
-        var specSymbolsCode = DataHelper.getSpecialCharactersName();
-        creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(approvedCardNumber, validMonth, validYear, validOwnerName, specSymbolsCode);
+        creditCardPage.fillCardPaymentForm(emptyField, emptyField, emptyField, emptyField, emptyField);
         creditCardPage.errorFormat();
     }
-
-    @Test
-    public void emptyAllFieldsCreditCardPayment() {
-        PaymentTypesPage page = new PaymentTypesPage();
-        page.paymentTypesPage();
-        var creditCardPage = page.creditPayment();
-        var emptyCardNumber = DataHelper.getEmptyField();
-        var emptyMonth = DataHelper.getEmptyField();
-        var emptyYear = DataHelper.getEmptyField();
-        var emptyOwnerName = DataHelper.getEmptyField();
-        var emptyCode = DataHelper.getEmptyField();
-        creditCardPage.cleanFields();
-        creditCardPage.fillCardPaymentForm(emptyCardNumber, emptyMonth, emptyYear, emptyOwnerName, emptyCode);
-        creditCardPage.errorFormat();
-
-
-    }
-
 }
-
-
